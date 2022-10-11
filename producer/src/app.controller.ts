@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, OnModuleDestroy, OnModuleInit, Post, Req, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Inject, OnModuleDestroy, OnModuleInit, Post, Req, Res, HttpStatus } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ClientKafka } from '@nestjs/microservices';
 import { createClient } from 'redis';
@@ -10,12 +10,16 @@ import { Promiser } from './promiser'
 export class AppController implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly appService: AppService,
-    @Inject('any_name_i_want') private readonly client: ClientKafka,
+    @Inject('kafka-module') private readonly client: ClientKafka,
   ) { }
 
   async onModuleInit() {
     ['kafka-topic'].forEach((key) => this.client.subscribeToResponseOf(`${key}`));
     await this.client.connect();
+  }
+
+  async onModuleDestroy() {
+    await this.client.close();
   }
 
 
